@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="#FFF8A6">
+
+    <TextView
+        android:id="@+id/widget_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="TODO TASKS"
+        android:textStyle="bold"
+        android:textSize="20sp"
+        android:textColor="#000000"/>
+
+    <TextView
+        android:id="@+id/task1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="🔴 Pay Electricity Bill"
+        android:textSize="18sp"/>
+
+    <TextView
+        android:id="@+id/task2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="🟠 Buy Groceries"
+        android:textSize="18sp"
+        android:layout_marginTop="6dp"/>
+
+    <TextView
+        android:id="@+id/task3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="🟢 Read Flutter"
+        android:textSize="18sp"
+        android:layout_marginTop="6dp"/>
+
+    <TextView
+    android:id="@+id/task4"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text=""
+    android:textSize="18sp"
+    android:layout_marginTop="6dp"/>
+
+    <TextView
+    android:id="@+id/task5"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text=""
+    android:textSize="18sp"
+    android:layout_marginTop="6dp"/>
+
+</LinearLayout>

@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../services/notification_service.dart';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import '../services/alarm_service.dart';
+import 'package:realtime_todo_app/services/widget_service.dart';
 
 class TodoScreen extends StatefulWidget {
   @override
@@ -71,6 +72,7 @@ class _TodoScreenState extends State<TodoScreen> {
     }
 
     await firestore.collection("tasks").add(taskData);
+    await refreshWidgetTasks();
     if (selectedReminderTime != null) {
       await scheduleNotification(task, selectedReminderTime!, alarmId);
     }
@@ -83,16 +85,70 @@ class _TodoScreenState extends State<TodoScreen> {
     FocusScope.of(context).requestFocus(taskFocusNode);
   }
 
+  Future<void> refreshWidgetTasks() async {
+    final snapshot = await firestore
+        .collection("tasks")
+        .where("completed", isEqualTo: false)
+        .get();
+
+    List<Map<String, dynamic>> tasks = snapshot.docs
+        .map((doc) => doc.data())
+        .toList();
+
+    Map<String, int> priorityOrder = {"High": 1, "Medium": 2, "Low": 3};
+
+    tasks.sort((a, b) {
+      Map<String, int> priorityOrder = {"High": 1, "Medium": 2, "Low": 3};
+
+      int priorityA = priorityOrder[a["priority"]] ?? 999;
+
+      int priorityB = priorityOrder[b["priority"]] ?? 999;
+
+      int priorityComparison = priorityA.compareTo(priorityB);
+
+      if (priorityComparison != 0) {
+        return priorityComparison;
+      }
+
+      Timestamp? createdAtA = a["createdAt"] as Timestamp?;
+
+      Timestamp? createdAtB = b["createdAt"] as Timestamp?;
+
+      if (createdAtA == null || createdAtB == null) {
+        return 0;
+      }
+
+      return createdAtA.compareTo(createdAtB);
+    });
+    int totalPendingTasks = tasks.length;
+    List<String> topTasks = tasks.take(5).map((task) {
+      String priority = task["priority"] ?? "Medium";
+
+      String icon = "🟠";
+
+      if (priority == "High") {
+        icon = "🔴";
+      } else if (priority == "Low") {
+        icon = "🟢";
+      }
+
+      return "$icon ${task["title"]}";
+    }).toList();
+    await WidgetService.updateWidget(topTasks, totalPendingTasks);
+  }
+
   Future<void> deleteTask(String documentId, int alarmId) async {
     await AndroidAlarmManager.cancel(alarmId);
 
     await firestore.collection("tasks").doc(documentId).delete();
+    await refreshWidgetTasks();
   }
 
   Future<void> toggleTask(String documentId, bool currentStatus) async {
     await firestore.collection("tasks").doc(documentId).update({
       "completed": !currentStatus,
     });
+    await refreshWidgetTasks();
   }
 
   Future<void> editTask(
@@ -835,37 +891,39 @@ class _TodoScreenState extends State<TodoScreen> {
                   }
 
                   if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                    return SingleChildScrollView(
+                      child: SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.35,
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.task_alt_rounded,
+                                size: 90,
+                                color: Colors.grey.shade400,
+                              ),
 
-                        children: [
-                          Icon(
-                            Icons.task_alt_rounded,
-                            size: 90,
-                            color: Colors.grey.shade400,
-                          ),
+                            SizedBox(height: 20),
 
-                          SizedBox(height: 20),
+                            Text(
+                              "No Tasks Yet",
 
-                          Text(
-                            "No Tasks Yet",
-
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black54,
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black54,
+                              ),
                             ),
+
+                            SizedBox(height: 10),
+                            Text(
+                              "Start adding your daily goals",
+                              style: TextStyle(fontSize: 16, color: Colors.grey),
+                            ),
+                            ],
                           ),
-
-                          SizedBox(height: 10),
-
-                          Text(
-                            "Start adding your daily goals",
-
-                            style: TextStyle(fontSize: 16, color: Colors.grey),
-                          ),
-                        ],
+                        ),
                       ),
                     );
                   }
